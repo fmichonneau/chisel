@@ -1,14 +1,19 @@
 Package: carpenter
 Title: Tools to work with The Carpentries GitHub repositories
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Authors@R: person("Francois", "Michonneau", role=c("aut", "cre"),
                                 email="francois.michonneau@gmail.com")
 Description: A collection of scripts to facilitate maintenance of The Carpentries repositories.
 Depends: R (>= 3.4.0)
 Imports:
+  dplyr,
+  kableExtra,
+  knitr,
   purrr,
   glue,
-  gh
+  gh,
+  readr,
+  rlang
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
