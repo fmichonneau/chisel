@@ -2,9 +2,12 @@
 % Please edit documentation in R/github_labels.R
 \name{summarize_github_labels}
 \alias{summarize_github_labels}
-\title{Summary table of GitHub labels from CSV file}
+\alias{document_github_labels}
+\title{Summary of GitHub labels from CSV file}
 \usage{
 summarize_github_labels(label_csv, format = "html", escape = FALSE, ...)
+
+document_github_labels(label_csv)
 }
 \arguments{
 \item{label_csv}{the path to a CSV file that describes the labels. It should
@@ -22,5 +25,10 @@ An HTML formatted table that shows the type of label, its color and
     its description.
 }
 \description{
-Creates an HTML formatted table to be included in the Carpentry handbook or other resources
+Creates an HTML formatted table or list to be included in the Carpentry
+handbook or other resources
+}
+\details{
+\code{summarize_github_labels} creates a table, while
+    \code{document_github_labels} creates a nested.
 }

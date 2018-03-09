@@ -1,6 +1,23 @@
-##' Creates an HTML formatted table to be included in the Carpentry handbook or other resources
+##' @importFrom colorspace hex2RGB
+font_color <- function(hexcode) {
+    rgb <- colorspace::hex2RGB(hexcode)
+    rgbR <- rgb@coords[, "R"]
+    rgbG <- rgb@coords[, "G"]
+    rgbB <- rgb@coords[, "B"]
+    luma <-((0.299 * rgbR) + (0.587 * rgbG) + (0.114 * rgbB))
+    res <- rep("#ffffff", length(hexcode))
+    res[luma > .5] <- "#222222"
+    res
+}
+
+
+##' Creates an HTML formatted table or list to be included in the Carpentry
+##' handbook or other resources
 ##'
-##' @title Summary table of GitHub labels from CSV file
+##' @details \code{summarize_github_labels} creates a table, while
+##'     \code{document_github_labels} creates a nested.
+##'
+##' @title Summary of GitHub labels from CSV file
 ##' @param label_csv the path to a CSV file that describes the labels. It should
 ##'     have the following columns: type, label, color, description,
 ##'     long_description.
@@ -17,13 +34,56 @@
 ##' @importFrom rlang .data
 summarize_github_labels <- function(label_csv, format = "html", escape = FALSE,
                                     ...) {
-
     label_csv %>%
         readr::read_csv() %>%
+        dplyr::mutate(prefix = dplyr::case_when(type == "status" ~ "status:",
+                                                type == "type" ~ "type:",
+                                                TRUE ~ ""),
+                      label = paste0(.data$prefix, .data$label)) %>%
+        dplyr::arrange(.data$label) %>%
         dplyr::mutate(color = kableExtra::cell_spec(
-                                              .data$color, background = .data$color
+                                              .data$color,
+                                              background = .data$color,
+                                              monospace = TRUE,
+                                              color = font_color(.data$color)
                                           )) %>%
-        knitr::kable(format = format, escape = escape, ...)
+        dplyr::select(.data$label, .data$color, .data$description,
+                      .data$long_description) %>%
+        knitr::kable(format = format, escape = escape, ...) %>%
+        kableExtra::kable_styling("bordered", font_size = ".85em")
+}
+
+##' @rdname summarize_github_labels
+##' @export
+##' @importFrom readr read_csv
+##' @importFrom dplyr mutate arrange case_when
+##' @importFrom purrr pmap
+##' @importFrom glue glue collapse
+document_github_labels <- function(label_csv) {
+    render_one_label <- function(label, color, description, long_description, ...) {
+        text_color <- font_color(color)
+        glue::glue(
+                  '<li><span style="font-family: monospace; font-weight: bold; font-size: 1.2em; color: {text_color}; background-color: {color}; border-radius: 4px; padding: 4px;">{label}</span>
+                     <ul>
+                       <li><b>Hex code:</b> {color}</li>
+                       <li><b>Short Description:</b> {description} </li>
+                       <li><b>Long Description:</b> {long_description} </li>
+                    </ul>
+                   </li>'
+              )
+    }
+
+     res <- label_csv %>%
+        readr::read_csv() %>%
+        dplyr::mutate(prefix = dplyr::case_when(type == "status" ~ "status:",
+                                                type == "type" ~ "type:",
+                                                TRUE ~ ""),
+                      label = paste0(.data$prefix, .data$label)) %>%
+        dplyr::arrange(.data$label) %>%
+        purrr::pmap(render_one_label)
+
+    glue::glue("<ul>", glue::collapse(res, sep = ""), "</ul>")
+
 }
 
 
