@@ -4,7 +4,7 @@ font_color <- function(hexcode) {
     rgbR <- rgb@coords[, "R"]
     rgbG <- rgb@coords[, "G"]
     rgbB <- rgb@coords[, "B"]
-    luma <-((0.299 * rgbR) + (0.587 * rgbG) + (0.114 * rgbB))
+    luma <- ((0.299 * rgbR) + (0.587 * rgbG) + (0.114 * rgbB))
     res <- rep("#ffffff", length(hexcode))
     res[luma > .5] <- "#222222"
     res
@@ -58,7 +58,7 @@ summarize_github_labels <- function(label_csv, format = "html", escape = FALSE,
 ##' @importFrom readr read_csv
 ##' @importFrom dplyr mutate arrange case_when
 ##' @importFrom purrr pmap
-##' @importFrom glue glue collapse
+##' @importFrom glue glue glue_collapse
 document_github_labels <- function(label_csv) {
     render_one_label <- function(label, color, description, long_description, ...) {
         text_color <- font_color(color)
@@ -82,7 +82,7 @@ document_github_labels <- function(label_csv) {
         dplyr::arrange(.data$label) %>%
         purrr::pmap(render_one_label)
 
-    glue::glue("<ul>", glue::collapse(res, sep = ""), "</ul>")
+    glue::glue("<ul>", glue::glue_collapse(res, sep = ""), "</ul>")
 
 }
 
