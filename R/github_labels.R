@@ -58,7 +58,7 @@ summarize_github_labels <- function(label_csv, format = "html", escape = FALSE,
 ##' @importFrom readr read_csv
 ##' @importFrom dplyr mutate arrange case_when
 ##' @importFrom purrr pmap
-##' @importFrom glue glue collapse
+##' @importFrom glue glue glue_collapse
 document_github_labels <- function(label_csv) {
     render_one_label <- function(label, color, description, long_description, ...) {
         text_color <- font_color(color)
@@ -82,7 +82,7 @@ document_github_labels <- function(label_csv) {
         dplyr::arrange(.data$label) %>%
         purrr::pmap(render_one_label)
 
-    glue::glue("<ul>", glue::collapse(res, sep = ""), "</ul>")
+    glue::glue("<ul>", glue::glue_collapse(res, sep = ""), "</ul>")
 
 }
 
