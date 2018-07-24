@@ -4,7 +4,7 @@ font_color <- function(hexcode) {
     rgbR <- rgb@coords[, "R"]
     rgbG <- rgb@coords[, "G"]
     rgbB <- rgb@coords[, "B"]
-    luma <-((0.299 * rgbR) + (0.587 * rgbG) + (0.114 * rgbB))
+    luma <- ((0.299 * rgbR) + (0.587 * rgbG) + (0.114 * rgbB))
     res <- rep("#ffffff", length(hexcode))
     res[luma > .5] <- "#222222"
     res
