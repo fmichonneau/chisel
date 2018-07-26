@@ -1,0 +1,32 @@
+---
+title: "Journal of scripts used"
+author: "François Michonneau"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## 2018-07-26 -- update Security group for DC Genomics AMI
+
+The images for the 2018-07-26 Duke workshop were already running, and possibly in use. The web interface only allows to update security group settings one at the time. This crude script (which assumes that `aws` command line tool is installed and properly configured) updates the security group settings for all these images.
+
+
+```{r dc-ami-aws-sg, eval=FALSE}
+
+get_aws_instances() %>%
+  extract_aws_info() %>%
+  dplyr::filter(instance_tag == "2018-07-26-duke") %>%
+  dplyr::pull(instance_id) %>%
+  purrr::map(~ update_aws_security_group(instance_id = .))
+
+```
