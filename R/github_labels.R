@@ -4,7 +4,7 @@ font_color <- function(hexcode) {
     rgbR <- rgb@coords[, "R"]
     rgbG <- rgb@coords[, "G"]
     rgbB <- rgb@coords[, "B"]
-    luma <-((0.299 * rgbR) + (0.587 * rgbG) + (0.114 * rgbB))
+    luma <- ((0.299 * rgbR) + (0.587 * rgbG) + (0.114 * rgbB))
     res <- rep("#ffffff", length(hexcode))
     res[luma > .5] <- "#222222"
     res
@@ -19,8 +19,10 @@ font_color <- function(hexcode) {
 ##'
 ##' @title Summary of GitHub labels from CSV file
 ##' @param label_csv the path to a CSV file that describes the labels. It should
-##'     have the following columns: type, label, color, description,
-##'     long_description.
+##'     have the following columns: print_order, type, label, color, use_prefix,
+##'     description, long_description. The canonical version of this file lives
+##'     in The Carpentries repository's
+##'     (\url{https://github.com/carpentries/handbook/}) \code{data/} folder.
 ##' @param format format of the output table (passed to \code{kable}).
 ##' @param escape should the HTML be escaped (passed to \code{kable}).
 ##' @param ... additional arguments to be passed to `kable`.
@@ -36,8 +38,8 @@ summarize_github_labels <- function(label_csv, format = "html", escape = FALSE,
                                     ...) {
     label_csv %>%
         readr::read_csv() %>%
-        dplyr::mutate(prefix = dplyr::case_when(type == "status" ~ "status:",
-                                                type == "type" ~ "type:",
+        dplyr::mutate(prefix = dplyr::case_when(type == "status" & use_prefix ~ "status:",
+                                                type == "type"   & use_prefix ~ "type:",
                                                 TRUE ~ ""),
                       label = paste0(.data$prefix, .data$label)) %>%
         dplyr::arrange(.data$label) %>%
@@ -59,30 +61,64 @@ summarize_github_labels <- function(label_csv, format = "html", escape = FALSE,
 ##' @importFrom dplyr mutate arrange case_when
 ##' @importFrom purrr pmap
 ##' @importFrom glue glue collapse
-document_github_labels <- function(label_csv) {
-    render_one_label <- function(label, color, description, long_description, ...) {
+document_github_labels <- function(label_csv, out = NULL) {
+    render_one_label <- function(label, color, description, long_description, type, print_header, ...) {
         text_color <- font_color(color)
-        glue::glue(
-                  '<li><span style="font-family: monospace; font-weight: bold; font-size: 1.2em; color: {text_color}; background-color: {color}; border-radius: 4px; padding: 4px;">{label}</span>
+        if (print_header)
+            hdr <- glue::glue("<h3>\"{hdr}\" labels</h3>", hdr = unique(type)[[1]])
+        else hdr <- character(0)
+
+        paste(hdr,
+              glue::glue(
+                        '<li><span style="font-family: monospace; font-weight: bold; font-size: 1.2em; color: {text_color}; background-color: {color}; border-radius: 4px; padding: 4px;">{label}</span>
                      <ul>
                        <li><b>Hex code:</b> {color}</li>
                        <li><b>Short Description:</b> {description} </li>
                        <li><b>Long Description:</b> {long_description} </li>
                     </ul>
                    </li>'
+                   )
               )
     }
 
-     res <- label_csv %>%
+    res <- label_csv %>%
         readr::read_csv() %>%
-        dplyr::mutate(prefix = dplyr::case_when(type == "status" ~ "status:",
-                                                type == "type" ~ "type:",
+        dplyr::mutate(prefix = dplyr::case_when(type == "status" & use_prefix ~ "status:",
+                                                type == "type" & use_prefix ~ "type:",
                                                 TRUE ~ ""),
                       label = paste0(.data$prefix, .data$label)) %>%
-        dplyr::arrange(.data$label) %>%
+        dplyr::arrange(.data$print_order) %>%
+        dplyr::group_by(.data$type) %>%
+        dplyr::mutate(print_header = print_order == min(print_order)) %>%
         purrr::pmap(render_one_label)
 
-    glue::glue("<ul>", glue::collapse(res, sep = ""), "</ul>")
+    res <- glue::glue("<ul>", glue::collapse(res, sep = ""), "</ul>")
+
+    if (!is.null(out)) {
+        cat(res, file = out)
+    } else {
+        res
+    }
+
+}
+
+pythonize_github_labels <- function(label_csv) {
+
+    labels <- readr::read_csv(label_csv) %>%
+        dplyr::mutate(prefix = dplyr::case_when(type == "status" & use_prefix ~ "status:",
+                                                type == "type" & use_prefix ~ "type:",
+                                                TRUE ~ ""),
+                      label = paste0(.data$prefix, .data$label))
+
+    cat(
+        "EXPECTED = {",
+        glue::collapse(
+                  glue::glue_data(labels, "    '{label}' : '{color}'",
+                                  color = tolower(gsub("#", "", color))),
+                  sep = ", \n",
+                  ),
+        "}",
+        sep = "\n")
 
 }
 
@@ -109,12 +145,12 @@ document_github_labels <- function(label_csv) {
 ##' @importFrom rlang .data
 create_github_labels <- function(label_csv, owner = "fmichonneau",
                                  repo = "test-repo-labels",
-                                 delete_previous = TRUE) {
+                                 delete_previous = FALSE) {
 
 
     lbl <- readr::read_csv(label_csv) %>%
-        dplyr::mutate(prefix = dplyr::case_when(type == "status" ~ "status:",
-                                                type == "type" ~ "type:",
+        dplyr::mutate(prefix = dplyr::case_when(type == "status"  & use_prefix ~ "status:",
+                                                type == "type" & use_prefix ~ "type:",
                                                 TRUE ~ ""),
                       label = paste0(.data$prefix, .data$label))
 
@@ -153,4 +189,119 @@ create_github_labels <- function(label_csv, owner = "fmichonneau",
         })
     }
     invisible(TRUE)
+}
+
+
+update_github_labels <- function(label_csv, match_table,
+                                 owner, repo) {
+
+    new_labels <- readr::read_csv(label_csv)
+    match_labels <- readr::read_csv(match_table) %>%
+        dplyr::filter(!skip)
+
+    ## To update
+    to_update <- dplyr::left_join(match_labels, new_labels, by = c("new_label" = "label")) %>%
+        dplyr::filter(new_label != "delete") %>%
+        dplyr::mutate(prefix = dplyr::case_when(type == "status"  & use_prefix ~ "status:",
+                                                type == "type" & use_prefix ~ "type:",
+                                                TRUE ~ ""),
+                      new_label = paste0(.data$prefix, .data$new_label))
+
+    res_update <- purrr::pmap(to_update, function(old_label, new_label, type, color, use_prefix,
+                                                  description, ...) {
+        message(old_label, " --> ", new_label)
+        color <- gsub("^#", "", color)
+
+        ## If label already exists, update it
+        lbl_exists <- try(
+            gh::gh("GET /repos/:owner/:repo/labels/:name", owner = owner, repo = repo,
+                   name = old_label),
+            silent = TRUE
+        )
+
+        if (!inherits(lbl_exists, "try-error")) {
+            if (identical(new_label, old_label)) {
+                .res <- gh::gh("PATCH /repos/:owner/:repo/labels/:name",
+                               owner = owner, repo = repo,
+                               name = old_label, color = color, description = description,
+                               .send_headers = c("Accept" = "application/vnd.github.symmetra-preview+json"))
+
+            } else {
+                cmd <- paste("PATCH", URLencode(glue::glue("/repos/{owner}/{repo}/labels/{name}",
+                                                           owner = owner, repo = repo,
+                                                           name = old_label)))
+                .res <- gh::gh(cmd, name = new_label, color = color,
+                               description = description,
+                               .send_headers = c("Accept" = "application/vnd.github.symmetra-preview+json"))
+            }
+        } else {
+            warning(old_label, ": doesn't exist!")
+            return(NULL)
+        }
+
+        .res
+
+    })
+
+
+    res_update
+
+}
+
+
+list_all_github_labels <- function(owner, repo) {
+    gh::gh("GET /repos/:owner/:repo/labels",
+           owner = owner, repo = repo,
+           .send_headers = c("Accept" = "application/vnd.github.symmetra-preview+json")) %>%
+        purrr::map_df(~ list(label = .x[["name"]]))
+}
+
+
+non_standard_github_labels <- function(labels_csv, owner, repo) {
+    all_lbls <- list_all_github_labels(owner, repo)
+    std_labels <- readr::read_csv(labels_csv) %>%
+        dplyr::mutate(prefix = dplyr::case_when(type == "status"  & use_prefix ~ "status:",
+                                                type == "type" & use_prefix ~ "type:",
+                                                TRUE ~ ""),
+                      label = paste0(.data$prefix, .data$label))
+
+    dplyr::anti_join(all_lbls, std_labels)
+
+}
+
+
+delete_all_github_labels <- function(owner, repo) {
+    all_lbls_raw <- gh::gh("GET /repos/:owner/:repo/labels",
+                           owner = owner, repo = repo)
+    purrr::map_chr(all_lbls_raw, "name") %>%
+        purrr::map(function(x) {
+            gh::gh("DELETE /repos/:owner/:repo/labels/:name",
+                   owner = owner, repo = repo, name = x)
+        })
+    invisible(TRUE)
+}
+
+
+if (FALSE) {
+
+    ## list of repos for pilot
+    pilot_repos <- tibble::tribble(
+                               ~owner,      ~repo,
+                               "datacarpentry", "R-ecology-lesson",
+                               "swcarpentry", "python-novice-gapminder",
+                               "swcarpentry", "r-novice-gapminder",
+                               "swcarpentry", "git-novice"
+                           )
+
+    es_repos <- tibble::tribble(
+                            ~owner, ~repo,
+                            "swcarpentry", "git-novice-es")
+
+    ## instructor training:
+    ##
+    ## create_github_labels("~/git/carpentry-handbook/data/github_labels.csv",
+    ##                      owner="carpentries", repo="instructor-training")
+
+
+
 }
