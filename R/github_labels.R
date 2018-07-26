@@ -60,28 +60,28 @@ summarize_github_labels <- function(label_csv, format = "html", escape = FALSE,
 ##' @importFrom readr read_csv
 ##' @importFrom dplyr mutate arrange case_when
 ##' @importFrom purrr pmap
-##' @importFrom glue glue collapse
+##' @importFrom glue glue_collapse
 document_github_labels <- function(label_csv, out = NULL) {
-    render_one_label <- function(label, color, description, long_description, type, print_header, ...) {
-        text_color <- font_color(color)
-        if (print_header)
-            hdr <- glue::glue("<h3>\"{hdr}\" labels</h3>", hdr = unique(type)[[1]])
-        else hdr <- character(0)
+  render_one_label <- function(label, color, description, long_description, type, print_header, ...) {
+    text_color <- font_color(color)
+    if (print_header)
+      hdr <- glue::glue("<h3>\"{hdr}\" labels</h3>", hdr = unique(type)[[1]])
+    else hdr <- character(0)
 
-        paste(hdr,
-              glue::glue(
-                        '<li><span style="font-family: monospace; font-weight: bold; font-size: 1.2em; color: {text_color}; background-color: {color}; border-radius: 4px; padding: 4px;">{label}</span>
+    paste(hdr,
+          glue::glue(
+            '<li><span style="font-family: monospace; font-weight: bold; font-size: 1.2em; color: {text_color}; background-color: {color}; border-radius: 4px; padding: 4px;">{label}</span>
                      <ul>
                        <li><b>Hex code:</b> {color}</li>
                        <li><b>Short Description:</b> {description} </li>
                        <li><b>Long Description:</b> {long_description} </li>
                     </ul>
                    </li>'
-                   )
-              )
-    }
+          )
+          )
+  }
 
-    res <- label_csv %>%
+  res <- label_csv %>%
         readr::read_csv() %>%
         dplyr::mutate(prefix = dplyr::case_when(type == "status" & use_prefix ~ "status:",
                                                 type == "type" & use_prefix ~ "type:",
@@ -92,7 +92,8 @@ document_github_labels <- function(label_csv, out = NULL) {
         dplyr::mutate(print_header = print_order == min(print_order)) %>%
         purrr::pmap(render_one_label)
 
-    res <- glue::glue("<ul>", glue::collapse(res, sep = ""), "</ul>")
+
+    res <- glue::glue("<ul>", glue::glue_collapse(res, sep = ""), "</ul>")
 
     if (!is.null(out)) {
         cat(res, file = out)
@@ -112,8 +113,8 @@ pythonize_github_labels <- function(label_csv) {
 
     cat(
         "EXPECTED = {",
-        glue::collapse(
-                  glue::glue_data(labels, "    '{label}' : '{color}'",
+        glue::glue_collapse(
+          glue::glue_data(labels, "    '{label}' : '{color}'",
                                   color = tolower(gsub("#", "", color))),
                   sep = ", \n",
                   ),
