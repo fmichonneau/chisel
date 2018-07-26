@@ -10,6 +10,7 @@ Imports:
   dplyr,
   jsonlite,
   kableExtra,
+  knitr,
   purrr,
   glue,
   gh,
@@ -22,6 +23,6 @@ LazyData: true
 RoxygenNote: 6.0.1
 URL: https://github.com/fmichonneau/carpenter
 BugReports: https://github.com/fmichonneau/carpenter/issues
-Suggests: knitr,
-    rmarkdown
+Suggests:
+  rmarkdown
 VignetteBuilder: knitr
