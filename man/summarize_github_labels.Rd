@@ -7,12 +7,14 @@
 \usage{
 summarize_github_labels(label_csv, format = "html", escape = FALSE, ...)
 
-document_github_labels(label_csv)
+document_github_labels(label_csv, out = NULL)
 }
 \arguments{
 \item{label_csv}{the path to a CSV file that describes the labels. It should
-have the following columns: type, label, color, description,
-long_description.}
+have the following columns: print_order, type, label, color, use_prefix,
+description, long_description. The canonical version of this file lives
+in The Carpentries repository's
+(\url{https://github.com/carpentries/handbook/}) \code{data/} folder.}
 
 \item{format}{format of the output table (passed to \code{kable}).}
 

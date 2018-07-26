@@ -5,7 +5,7 @@
 \title{Create GitHub labels for issues and PR from CSV file}
 \usage{
 create_github_labels(label_csv, owner = "fmichonneau",
-  repo = "test-repo-labels", delete_previous = TRUE)
+  repo = "test-repo-labels", delete_previous = FALSE)
 }
 \arguments{
 \item{label_csv}{the path to the CSV file with the labels. It should have
