@@ -5,7 +5,8 @@
 \alias{document_github_labels}
 \title{Summary of GitHub labels from CSV file}
 \usage{
-summarize_github_labels(label_csv, format = "html", escape = FALSE, ...)
+summarize_github_labels(label_csv, format = "html", escape = FALSE,
+  ...)
 
 document_github_labels(label_csv, out = NULL)
 }
@@ -21,6 +22,8 @@ in The Carpentries repository's
 \item{escape}{should the HTML be escaped (passed to \code{kable}).}
 
 \item{...}{additional arguments to be passed to `kable`.}
+
+\item{out}{path to file to write the HTML file documenting the labels}
 }
 \value{
 An HTML formatted table that shows the type of label, its color and

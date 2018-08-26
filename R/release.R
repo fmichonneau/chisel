@@ -211,26 +211,26 @@ generate_zenodo_json <- function(repos, local_path, editors) {
 
 
 
-
+##' @importFrom utils as.person bibentry personList
 generate_citation <- function(authors = "AUTHORS",
                               editors = eds,
                               doi = "10.5281/zenodo.569338",
                               title = "Data Carpentry: R for data analysis and visualization of Ecological Data") {
 
-    stopifnot(inherits(editors, "person"))
+  stopifnot(inherits(editors, "person"))
 
-    aut <- readLines(authors)
+  aut <- readLines(authors)
 
-    # remove first line
-    aut <- aut[-1]
+  ## remove first line
+  aut <- aut[-1]
 
-    aut <- as.person(aut)
+  aut <- utils::as.person(aut)
 
-    bibentry(
-        bibtype = "Misc",
-        author = personList(aut),
-        title = title,
-        editor = editors,
+  utils::bibentry(
+    bibtype = "Misc",
+    author = utlis::personList(aut),
+    title = title,
+    editor = editors,
         month = format(Sys.Date(), "%B"),
         year = format(Sys.Date(), "%Y"),
         url = "http://datacarpentry.org/R-ecology-lesson/",

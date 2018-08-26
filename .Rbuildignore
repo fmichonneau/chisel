@@ -5,3 +5,4 @@
 ^README\.Rmd$
 ^README\.html$
 local_data/
+inst/mailmap/.mailmap

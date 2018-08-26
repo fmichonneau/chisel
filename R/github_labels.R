@@ -56,6 +56,7 @@ summarize_github_labels <- function(label_csv, format = "html", escape = FALSE,
 }
 
 ##' @rdname summarize_github_labels
+##' @param out path to file to write the HTML file documenting the labels
 ##' @export
 ##' @importFrom readr read_csv
 ##' @importFrom dplyr mutate arrange case_when
@@ -193,6 +194,7 @@ create_github_labels <- function(label_csv, owner = "fmichonneau",
 }
 
 
+##' @importFrom utils URLencode
 update_github_labels <- function(label_csv, match_table,
                                  owner, repo) {
 
@@ -228,8 +230,8 @@ update_github_labels <- function(label_csv, match_table,
                                .send_headers = c("Accept" = "application/vnd.github.symmetra-preview+json"))
 
             } else {
-                cmd <- paste("PATCH", URLencode(glue::glue("/repos/{owner}/{repo}/labels/{name}",
-                                                           owner = owner, repo = repo,
+              cmd <- paste("PATCH", utils::URLencode(glue::glue("/repos/{owner}/{repo}/labels/{name}",
+                                                                owner = owner, repo = repo,
                                                            name = old_label)))
                 .res <- gh::gh(cmd, name = new_label, color = color,
                                description = description,
