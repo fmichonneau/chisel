@@ -12,10 +12,10 @@
 ##' @importFrom glue glue
 ##' @export
 ##' @md
-one_issue_per_file <- function(owner = "fmichonneau", repo = "git-novice-es",
+one_issue_per_file <- function(owner = "carpentries-es", repo = "python-ecology-lesson-es",
                                path = "_episodes", pattern = "md$",
-                               issue_title = "Review translation of {name}",
-                               issue_body = "Review the translation of [{path}]({html_url}) \n Due date: 2018-03-05",
+                               issue_title = "Translation of {name}",
+                               issue_body = " :+1: :tada: ¡En primer lugar, gracias por tomarte el tiempo para contribuir! :tada: :+1: \n\nÉste repositorio está siendo traducido y nos gustaría mucho que puedas contribuir. Lo siguiente es un conjunto de pautas, no reglas, que hemos desarrollado para otros proyectos de traducción y nos han sido muy útiles para tener una traducción homogénea. [Convenciones](https://github.com/Carpentries-ES/board/blob/master/Convenciones_Traduccion.md). \n\n Aquí puedes comentar sobre preguntas y progreso en la tradución de este episodio. \n \n Episodio: [{path}]({html_url}).",
                                ...) {
 
     files <- gh_list_files(owner = owner, repo = repo, path = path, ...)
@@ -24,12 +24,12 @@ one_issue_per_file <- function(owner = "fmichonneau", repo = "git-novice-es",
     titles <- glue::glue(issue_title, name = files$name)
     bodies <- glue::glue(issue_body, path = files$path, html_url = files$html_url)
 
-    res <- purrr::walk2(titles, bodies,
-                        function(x, y) {
-                            gh("POST /repos/:owner/:repo/issues",
-                               owner = owner, repo = repo,
-                               title = x, body = y, ...)
-                        })
+  res <- purrr::walk2(titles, bodies,
+                      function(x, y) {
+                        gh("POST /repos/:owner/:repo/issues",
+                           owner = owner, repo = repo,
+                           title = x, body = y, ...)
+                      })
 
-    res
+  res
 }
