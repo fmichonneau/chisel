@@ -20,8 +20,7 @@ get_amy_people <- function() {
     jsonlite::fromJSON(.res$parse(encoding = "utf-8"))$results
   })
 
-  other_pages
-
+  dplyr::bind_rows(first_page$results, other_pages)
 }
 
 ## caches the AMY persons data for 1 week, and redownload the data if cache is
