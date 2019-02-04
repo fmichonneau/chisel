@@ -18,20 +18,22 @@ github_stats_repo_raw <- function(org = "datacarpentry", repo = "organization-ge
 
 get_pull_requests <- function(owner = "datacarpentry", repo = "organization-geospatial") {
 
-
+    message(repo)
     all_prs <- gh::gh("GET /repos/:owner/:repo/pulls",
                       owner = owner, repo = repo,
                       state = "all",
                       per_page = 100)
 
+    if (nchar(all_prs[[1]]) < 1) return(NULL)
+
     purrr::map_df(all_prs, ~ list(
                               user = .[["user"]][["login"]],
                               number = .[["number"]],
                               state = .[["state"]],
-                              created_at = .[["created_at"]],
-                              updated_at = .[["updated_at"]],
-                              closed_at = .[["closed_at"]],
-                              merged_at = .[["merged_at"]]
+                              created_at = .[["created_at"]] %||% NA_character_,
+                              updated_at = .[["updated_at"]] %||% NA_character_,
+                              closed_at = .[["closed_at"]] %||% NA_character_,
+                              merged_at = .[["merged_at"]] %||% NA_character_
                           )) %>%
         dplyr::mutate(repo = repo)
 }
@@ -77,6 +79,26 @@ get_repo_traffic <- function(owner, repo) {
 }
 
 
+get_all_issues_organization <- function(org) {
+
+    repos <- get_repositories(org)
+    details <- strsplit(repos$full_name, "/")
+
+    purrr::map_df(details, function(.x) {
+        get_issues(owner = .x[1], repo = .x[2], min_date = "2016-01-01")
+    })
+}
+
+get_all_prs_organization <- function(org) {
+
+    repos <- get_repositories(org)
+    details <- strsplit(repos$full_name, "/")
+
+    purrr::map_df(details, function(.x) {
+        get_pull_requests(owner = .x[1], repo = .x[2])
+
+    })
+}
 
 if (FALSE) {
     reps <- get_repositories(org = "datacarpentry",
