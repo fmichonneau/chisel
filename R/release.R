@@ -189,11 +189,18 @@ if (FALSE) {
 
 }
 
-generate_zenodo_json <- function(repos, local_path, editors) {
+generate_zenodo_json <- function(repos, local_path, editors,
+                                 ignore = c("francois.michonneau@gmail.com")) {
     creators <- repos %>%
-        get_origin_repo() %>%
-        dplyr::pull(name) %>%
-        purrr::map(~ list(name = .))
+      get_origin_repo() %>%
+    dplyr::left_join(all_people(), by = "email") %>%
+    dplyr::anti_join(tibble::data_frame(email = ignore), by = "email") %>%
+    dplyr::mutate(pub_name = dplyr::case_when(
+      !is.na(personal) & !is.na(family) ~ paste(personal, family),
+      TRUE ~ name
+    )) %>%
+    dplyr::pull(pub_name) %>%
+    purrr::map(~ list(name = .))
 
     creators <- list(creators = creators)
 
