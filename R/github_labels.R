@@ -94,7 +94,7 @@ document_github_labels <- function(label_csv, out = NULL) {
       label = paste0(.data$prefix, .data$label)) %>%
     dplyr::arrange(.data$print_order) %>%
     dplyr::group_by(.data$type) %>%
-    dplyr::mutate(print_header = print_order == min(print_order)) %>%
+    dplyr::mutate(print_header = .data$print_order == min(.data$print_order)) %>%
     purrr::pmap(render_one_label)
 
   res <- glue::glue("<ul>", glue::glue_collapse(res, sep = ""), "</ul>")
@@ -120,7 +120,7 @@ pythonize_github_labels <- function(label_csv) {
     "EXPECTED = {",
     glue::glue_collapse(
       glue::glue_data(labels, "    '{label}' : '{color}'",
-        color = tolower(gsub("#", "", color))),
+        color = tolower(gsub("#", "", .data$color))),
       sep = ", \n",
       ),
     "}",
