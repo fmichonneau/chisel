@@ -21,13 +21,13 @@ in The Carpentries repository's
 
 \item{escape}{should the HTML be escaped (passed to \code{kable}).}
 
-\item{...}{additional arguments to be passed to `kable`.}
+\item{...}{additional arguments to be passed to \code{kable}.}
 
 \item{out}{path to file to write the HTML file documenting the labels}
 }
 \value{
 An HTML formatted table that shows the type of label, its color and
-    its description.
+its description.
 }
 \description{
 Creates an HTML formatted table or list to be included in the Carpentry
@@ -35,5 +35,8 @@ handbook or other resources
 }
 \details{
 \code{summarize_github_labels} creates a table, while
-    \code{document_github_labels} creates a nested.
+\code{document_github_labels} creates a list.
+
+See \code{\link[=create_github_labels]{create_github_labels()}} for a description of the CSV file format
+expected by this function.
 }
