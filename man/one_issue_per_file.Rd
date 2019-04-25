@@ -4,16 +4,13 @@
 \alias{one_issue_per_file}
 \title{One issue per file}
 \usage{
-one_issue_per_file(owner = "fmichonneau", repo = "git-novice-es",
-  path = "_episodes", pattern = "md$",
-  issue_title = "Review translation of {name}",
-  issue_body = "Review the translation of [{path}]({html_url}) \\n Due date: 2018-03-05",
-  ...)
+one_issue_per_file(owner, repo, path = "_episodes", pattern = "md$",
+  issue_title = "Translation of {name}", issue_body, ...)
 }
 \arguments{
-\item{owner}{user or organization who owns the repository}
+\item{owner}{user or organization who owns the GitHub repository}
 
-\item{repo}{name of the repository}
+\item{repo}{name of the GitHub repository}
 
 \item{path}{subfolder to look for files}
 
