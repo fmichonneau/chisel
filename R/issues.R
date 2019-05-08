@@ -31,11 +31,12 @@ When all checkboxes above are completed, this lesson will be added to the 18 Jun
 ##' @rdname create_issue
 ##' @return JSON
 ##' @export
-create_issue <- function(owner, repo, title, body, ...) {
+create_issue <- function(owner, repo, title, body,
+                         labels = c("help wanted"), ...) {
 
     gh::gh("POST /repos/:owner/:repo/issues",
            owner = owner, repo = repo, title = title,
-           body = body, labels = c("help wanted"), ...)
+           body = body, labels = labels, ...)
 }
 
 ##' @export
