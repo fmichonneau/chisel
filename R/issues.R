@@ -35,7 +35,7 @@ create_issue <- function(owner, repo, title, body, ...) {
 
     gh::gh("POST /repos/:owner/:repo/issues",
            owner = owner, repo = repo, title = title,
-           body = body, ...)
+           body = body, labels = c("help wanted"), ...)
 }
 
 ##' @export
