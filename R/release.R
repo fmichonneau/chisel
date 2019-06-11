@@ -312,6 +312,7 @@ generate_zenodo_json <- function(repos, local_path, editors,
 generate_citation <- function(authors = "AUTHORS",
                               editors,
                               doi = "10.5281/zenodo.569338",
+                              url = "https://datacarpentry.org/R-ecology-lesson/",
                               title = "Data Carpentry: R for data analysis and visualization of Ecological Data") {
 
   stopifnot(inherits(editors, "person"))
@@ -330,12 +331,8 @@ generate_citation <- function(authors = "AUTHORS",
     editor = editors,
     month = format(Sys.Date(), "%B"),
     year = format(Sys.Date(), "%Y"),
-    url = "http://datacarpentry.org/R-ecology-lesson/",
+    url = url,
     doi = doi
   )
 
 }
-
-
-##system("python3 /usr/local/bin/update-copyright.py")
-##generate_zenodo_json(editors = eds)
