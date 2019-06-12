@@ -1,13 +1,13 @@
 ## Uses the AMY API to get the full list of people
 get_amy_people <- function() {
-  endpoint <- "api/v1/persons"
+  endpoint <- "api/v1/persons/"
   amy <- crul::HttpClient$new(
-    url = "https://amy.software-carpentry.org/",
+    url = "https://amy.carpentries.org",
     auth = crul::auth(Sys.getenv("AMY_USER"),
-                      Sys.getenv("AMY_PASS"))
+      Sys.getenv("AMY_PASS"))
   )
 
-  first_page_raw  <- amy$get(endpoint)
+  first_page_raw  <- amy$get(path = endpoint)
   first_page <- jsonlite::fromJSON(first_page_raw$parse(encoding = "utf-8"))
   n_pages <- ceiling(first_page$count/nrow(first_page$results))
 
@@ -15,7 +15,7 @@ get_amy_people <- function() {
 
   other_pages <- purrr::map_df(seq.int(2, n_pages), function(.p) {
     message(.p, " out of ",  n_pages, " ... ", appendLF = FALSE)
-    .res <- amy$get(paste0(endpoint, "/?page=", .p))
+    .res <- amy$get(paste0(endpoint, "?page=", .p))
     message("DONE.")
     jsonlite::fromJSON(.res$parse(encoding = "utf-8"))$results
   })
