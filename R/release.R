@@ -68,7 +68,8 @@ extract_shortlog_history <- function(repos, since = NULL) {
   }, .id = "repo")
 }
 
-copy_master_mailmap <- function(repo_path, mailmap = "inst/mailmap/.mailmap") {
+copy_master_mailmap <- function(repo_path,
+                                mailmap = system.file("/mailmap/.mailmap")) {
 
   ## The mailmap copy in this repository should point to the email address used
   ## in AMY by the user, so we can match to name + ORCID
