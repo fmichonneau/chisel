@@ -2,7 +2,7 @@
 git_url <- function(owner, repo, provider = c("github", "github-ssh")) {
   provider <- match.arg(provider)
   if (identical(provider, "github")) {
-    url <- glue::glue("https://github.com/{owner}/{repo}",
+    url <- glue::glue("https://github.com/{owner}/{repo}.git",
       owner = owner, repo = repo)
   } else if (identical(provider, "github-ssh")) {
     url <- glue::glue("git@github.com:{owner}/{repo}.git",
@@ -12,13 +12,34 @@ git_url <- function(owner, repo, provider = c("github", "github-ssh")) {
 }
 
 
-get_repo <- function(owner, repo, provider = "github") {
-  url <- git_url(owner, repo, provider)
-  pth <- file.path(tempdir(),
-    paste(owner, repo, ids::proquint(1, 1), sep = "-"))
+get_repo_fetch_hook <- function(key, namespace) {
+  pth <- file.path(
+    "/tmp/repos",
+    paste(key, ids::proquint(1, 1), sep = "-")
+  )
   dir.create(pth, recursive = TRUE)
+  pth
+}
 
-  git2r::clone(url, pth)
+
+get_repo <- function(owner, repo, provider = "github",
+                     path = "/tmp/repos") {
+  url <- git_url(owner, repo, provider)
+
+  st <- storr::storr_external(
+    storr::driver_rds(tempdir(), mangle_key = TRUE),
+    get_repo_fetch_hook
+  )
+
+  pth <- st$get(paste0(owner, "-", repo))
+
+  pth_git <- file.path(pth, ".git")
+
+  if (dir.exists(pth_git)) {
+    git2r::repository(pth)
+  } else {
+    git2r::clone(url, pth)
+  }
 }
 
 extract_repo_history <- function(repos) {
