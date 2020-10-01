@@ -22,6 +22,7 @@ Imports:
   rlang,
   storr,
   sys,
+  tibble,
   utils
 License: MIT + file LICENSE
 Encoding: UTF-8

@@ -18,6 +18,8 @@ create_milestone(owner, repo, title, ...)
 
 \item{body}{the body of the issue}
 
+\item{labels}{GitHub label to use with the issue}
+
 \item{...}{additional parameters being passed to gh::gh}
 }
 \value{

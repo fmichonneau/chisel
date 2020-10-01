@@ -1,3 +1,4 @@
+##' @importFrom gh gh
 get_raw_repositories <- function(org, ...) {
 
   init_res  <- gh::gh("GET /orgs/:org/repos", org = org)
@@ -22,7 +23,9 @@ get_raw_repositories <- function(org, ...) {
   res
 }
 
-
+##' @importFrom purrr map_df
+##' @importFrom dplyr filter
+##' @importFrom rlang .data
 get_repositories <- function(org, filter = NULL) {
     raw_repo <- get_raw_repositories(org)
     res <- purrr::map_df(raw_repo, function(x) {
@@ -38,7 +41,7 @@ get_repositories <- function(org, filter = NULL) {
 
     if (!is.null(filter)) {
       res <- res %>%
-        dplyr::filter(grepl(filter, name))
+        dplyr::filter(grepl(filter, .data$name))
     }
 
     res

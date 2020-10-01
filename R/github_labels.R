@@ -227,14 +227,15 @@ create_github_labels <- function(label_csv, owner, repo,
 
 
 ##' @importFrom utils URLencode
+##' @importFrom rlang .data
 update_github_labels <- function(label_csv, match_table,
                                  owner, repo) {
 
-    new_labels <- readr::read_csv(label_csv)
-    match_labels <- readr::read_csv(match_table) %>%
-        dplyr::filter(!skip)
+  new_labels <- readr::read_csv(label_csv)
+  match_labels <- readr::read_csv(match_table) %>%
+    dplyr::filter(!.data$skip)
 
-    ## To update
+  ## To update
   to_update <- dplyr::left_join(
     match_labels, new_labels, by = c("new_label" = "label")) %>%
     dplyr::filter(new_label != "delete") %>%
@@ -247,43 +248,43 @@ update_github_labels <- function(label_csv, match_table,
   res_update <- purrr::pmap(to_update,
     function(old_label, new_label, type, color, use_prefix,
              description, ...) {
-        message(old_label, " --> ", new_label)
-        color <- gsub("^#", "", color)
+      message(old_label, " --> ", new_label)
+      color <- gsub("^#", "", color)
 
-        ## If label already exists, update it
-        lbl_exists <- try(
-          gh::gh("GET /repos/:owner/:repo/labels/:name",
+      ## If label already exists, update it
+      lbl_exists <- try(
+        gh::gh("GET /repos/:owner/:repo/labels/:name",
+          owner = owner, repo = repo,
+          name = old_label),
+        silent = TRUE
+      )
+
+      if (!inherits(lbl_exists, "try-error")) {
+        if (identical(.data$new_label, .data$old_label)) {
+          .res <- gh::gh(
+            "PATCH /repos/:owner/:repo/labels/:name",
             owner = owner, repo = repo,
-            name = old_label),
-            silent = TRUE
-        )
+            name = old_label, color = color, description = description,
+            .send_headers = c("Accept" = "application/vnd.github.symmetra-preview+json"))
 
-        if (!inherits(lbl_exists, "try-error")) {
-            if (identical(new_label, old_label)) {
-              .res <- gh::gh(
-                "PATCH /repos/:owner/:repo/labels/:name",
-                owner = owner, repo = repo,
-                name = old_label, color = color, description = description,
-                .send_headers = c("Accept" = "application/vnd.github.symmetra-preview+json"))
-
-            } else {
-              cmd <- paste(
-                "PATCH", utils::URLencode(
-                  glue::glue("/repos/{owner}/{repo}/labels/{name}",
-                    owner = owner, repo = repo,
-                    name = old_label)))
-
-              .res <- gh::gh(
-                cmd, name = new_label, color = color,
-                description = description,
-                .send_headers = c("Accept" = "application/vnd.github.symmetra-preview+json"))
-            }
         } else {
-            warning(old_label, ": doesn't exist!")
-            return(NULL)
-        }
+          cmd <- paste(
+            "PATCH", utils::URLencode(
+              glue::glue("/repos/{owner}/{repo}/labels/{name}",
+                owner = owner, repo = repo,
+                name = old_label)))
 
-        .res
+          .res <- gh::gh(
+            cmd, name = new_label, color = color,
+            description = description,
+            .send_headers = c("Accept" = "application/vnd.github.symmetra-preview+json"))
+        }
+      } else {
+        warning(old_label, ": doesn't exist!")
+        return(NULL)
+      }
+
+      .res
 
     })
 

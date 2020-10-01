@@ -109,6 +109,7 @@ copy_master_mailmap <- function(repo_path,
 
 }
 
+##' @importFrom tibble tibble
 get_origin_repo <- function(repo_list,
                             main_ignore =
                               tibble::tibble(email =
@@ -301,12 +302,13 @@ if (FALSE) {
         "francois.michonneau@gmail.com"))
 }
 
+##' @importFrom tibble tibble
 generate_zenodo_json <- function(repos, local_path, editors,
                                  ignore = c("francois.michonneau@gmail.com")) {
   creators <- repos %>%
     get_origin_repo() %>%
     dplyr::left_join(all_people(), by = "email") %>%
-    dplyr::anti_join(tibble::data_frame(email = ignore), by = "email") %>%
+    dplyr::anti_join(tibble::tibble(email = ignore), by = "email") %>%
     dplyr::mutate(pub_name = dplyr::case_when(
       !is.na(personal) & !is.na(family) ~ paste(personal, family),
       TRUE ~ name

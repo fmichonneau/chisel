@@ -26,6 +26,7 @@ When all checkboxes above are completed, this lesson will be added to the 18 Jun
 ##' @param repo the name of the GitHub repository
 ##' @param title the title of the issue or milestone
 ##' @param body the body of the issue
+##' @param labels GitHub label to use with the issue
 ##' @param ... additional parameters being passed to gh::gh
 ##' @importFrom gh gh
 ##' @rdname create_issue
