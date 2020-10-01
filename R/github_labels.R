@@ -70,20 +70,23 @@ document_github_labels <- function(label_csv, out = NULL) {
   render_one_label <- function(label, color, description, long_description, type, print_header, ...) {
     text_color <- font_color(color)
     if (print_header)
-      hdr <- glue::glue("<h3>\"{hdr}\" labels</h3>", hdr = unique(type)[[1]])
+      hdr <- glue::glue("<h3>\"{hdr}\" labels</h3>\n", hdr = unique(type)[[1]])
     else hdr <- character(0)
 
     paste(hdr,
-          glue::glue(
-            '<li><span style="font-family: monospace; font-weight: bold; font-size: 1.2em; color: {text_color}; background-color: {color}; border-radius: 4px; padding: 4px;">{label}</span>
+      "<ul>",
+      glue::glue(
+        '<li><span style="font-family: monospace; font-weight: bold; font-size: 1.2em; color: {text_color}; background-color: {color}; border-radius: 4px; padding: 4px;">{label}</span>
                      <ul>
                        <li><b>Hex code:</b> {color}</li>
                        <li><b>Short Description:</b> {description} </li>
                        <li><b>Long Description:</b> {long_description} </li>
                     </ul>
                    </li>'
-          )
-          )
+      ),
+      "</ul>",
+      sep = "\n"
+    )
   }
 
   res <- readr::read_csv(label_csv) %>%
@@ -97,7 +100,7 @@ document_github_labels <- function(label_csv, out = NULL) {
     dplyr::mutate(print_header = .data$print_order == min(.data$print_order)) %>%
     purrr::pmap(render_one_label)
 
-  res <- glue::glue("<ul>", glue::glue_collapse(res, sep = ""), "</ul>")
+  res <- glue::glue_collapse(res, sep = "")
 
   if (!is.null(out)) {
     cat(res, file = out)
