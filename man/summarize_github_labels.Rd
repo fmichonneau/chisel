@@ -5,8 +5,7 @@
 \alias{document_github_labels}
 \title{Summary of GitHub labels from CSV file}
 \usage{
-summarize_github_labels(label_csv, format = "html", escape = FALSE,
-  ...)
+summarize_github_labels(label_csv, format = "html", escape = FALSE, ...)
 
 document_github_labels(label_csv, out = NULL)
 }

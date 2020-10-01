@@ -40,11 +40,11 @@ The CSV file is expected to have the following columns:
 \item \code{color}: the hexadecimal value for the background color of the label.
 \item \code{prefix}: boolean (\code{TRUE}/\code{FALSE}) to indicate whether the content of the
 \code{type} column should be used as a prefix for the label. If \code{type} is
-\code{status}, \code{label} is \code{in progress},  and \code{prefix} is \code{TRUE}, then the
-label will appear as \code{status: in progress} on GitHub.
+\code{status}, \code{label} is \verb{in progress},  and \code{prefix} is \code{TRUE}, then the
+label will appear as \verb{status: in progress} on GitHub.
 \item \code{description}: the short description that will be displayed on GitHub next
 to the label.
-\item \code{long description}: a long description to be used by
+\item \verb{long description}: a long description to be used by
 \code{\link[=document_github_labels]{document_github_labels()}}.
 }
 

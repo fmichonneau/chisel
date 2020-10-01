@@ -4,8 +4,15 @@
 \alias{one_issue_per_file}
 \title{One issue per file}
 \usage{
-one_issue_per_file(owner, repo, path = "_episodes", pattern = "md$",
-  issue_title = "Translation of {name}", issue_body, ...)
+one_issue_per_file(
+  owner,
+  repo,
+  path = "_episodes",
+  pattern = "md$",
+  issue_title = "Translation of {name}",
+  issue_body,
+  ...
+)
 }
 \arguments{
 \item{owner}{user or organization who owns the GitHub repository}

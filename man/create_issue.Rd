@@ -5,7 +5,7 @@
 \alias{create_milestone}
 \title{Issues and milestones}
 \usage{
-create_issue(owner, repo, title, body, ...)
+create_issue(owner, repo, title, body, labels = c("help wanted"), ...)
 
 create_milestone(owner, repo, title, ...)
 }
