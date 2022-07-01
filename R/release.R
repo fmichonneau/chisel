@@ -317,7 +317,8 @@ add_pub_name <- function(.data) {
     dplyr::mutate(pub_name = dplyr::case_when(
       ## default on AMY profile info
       ## first use profile info if user specified it's what they wanted
-      lesson_publication_consent == "amy" || lesson_publication_consent == "unset" ~ person_name_with_middle,
+      lesson_publication_consent == "amy" |
+        lesson_publication_consent == "unset" ~ person_name_with_middle,
       ## then orcid info
       lesson_publication_consent == "orcid" &
         is_valid_orcid(clean_up_orcid(orcid)) ~ get_orcid_name(clean_up_orcid(orcid)),
