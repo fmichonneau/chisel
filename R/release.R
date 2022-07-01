@@ -415,7 +415,9 @@ generate_zenodo_json <- function(repos, local_path, editors_github,
                                  ignore = character(0)) {
 
   creators_df <- get_lesson_creators(repos, since = since) %>%
-    dplyr::filter(lesson_publication_consent != "no")
+    dplyr::filter(
+      is.na(lesson_publication_consent) | lesson_publication_consent != "no"
+    )
 
   creators  <- creators_df %>%
     dplyr::anti_join(tibble::tibble(email = ignore), by = "email") %>%
