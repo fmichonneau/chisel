@@ -7,7 +7,8 @@ all_people <- function() {
   )
 
   readr::read_csv(
-    file = url
+    file = url,
+    show_col_types = FALSE
   ) %>%
   dplyr::rename(
     email = person_email,
