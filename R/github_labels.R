@@ -238,7 +238,7 @@ update_github_labels <- function(label_csv, match_table,
   ## To update
   to_update <- dplyr::left_join(
     match_labels, new_labels, by = c("new_label" = "label")) %>%
-    dplyr::filter(new_label != "delete") %>%
+    dplyr::filter(.data$new_label != "delete") %>%
     dplyr::mutate(prefix = dplyr::case_when(
       type == "status"  & use_prefix ~ "status:",
       type == "type" & use_prefix ~ "type:",
@@ -260,7 +260,7 @@ update_github_labels <- function(label_csv, match_table,
       )
 
       if (!inherits(lbl_exists, "try-error")) {
-        if (identical(.data$new_label, .data$old_label)) {
+        if (identical(new_label, old_label)) {
           .res <- gh::gh(
             "PATCH /repos/:owner/:repo/labels/:name",
             owner = owner, repo = repo,

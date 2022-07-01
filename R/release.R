@@ -84,13 +84,13 @@ extract_shortlog_history <- function(repos, since = NULL) {
 
     readr::read_delim(fout, delim = "|",
       col_names = FALSE, trim_ws = TRUE,
-      col_types = "ccc") %>%
+      col_types = "ccc", lazy = FALSE) %>%
       rlang::set_names("sha", "name", "email")
   }, .id = "repo")
 }
 
 copy_master_mailmap <- function(repo_path,
-                                mailmap = system.file("/mailmap/.mailmap")) {
+                                mailmap = system.file("mailmap/.mailmap", package = "chisel")) {
 
   ## The mailmap copy in this repository should point to the email address used
   ## in AMY by the user, so we can match to name + ORCID
@@ -110,11 +110,14 @@ copy_master_mailmap <- function(repo_path,
 }
 
 ##' @importFrom tibble tibble
+##' # mail_ignore should be a 1 column tibble named email e.g.:
+##' main_ignore = tibble::tibble(
+##'   email = c(
+##'     "ebecker@carpentries.org",
+##'    "francois.michonneau@gmail.com")
+##' )
 get_origin_repo <- function(repo_list,
-                            main_ignore =
-                              tibble::tibble(email =
-                                               c("ebecker@carpentries.org",
-                                                 "francois.michonneau@gmail.com")),
+                            main_ignore = NULL,
                             since = NULL) {
 
   stopifnot("main" %in% repo_list$name)
@@ -302,23 +305,146 @@ if (FALSE) {
         "francois.michonneau@gmail.com"))
 }
 
-##' @importFrom tibble tibble
-generate_zenodo_json <- function(repos, local_path, editors,
-                                 ignore = c("francois.michonneau@gmail.com")) {
-  creators <- repos %>%
-    get_origin_repo() %>%
-    dplyr::left_join(all_people(), by = "email") %>%
-    dplyr::anti_join(tibble::tibble(email = ignore), by = "email") %>%
+add_pub_name <- function(.data) {
+
+  ## for when calling add_pub_name for list of editors using their GitHub
+  if (!exists("name", .data)) {
+    .data <- .data %>%
+      mutate(name = person_name_with_middle)
+  }
+
+  .data %>%
     dplyr::mutate(pub_name = dplyr::case_when(
-      !is.na(personal) & !is.na(family) ~ paste(personal, family),
+      ## default on AMY profile info
+      ## first use profile info if user specified it's what they wanted
+      lesson_publication_consent == "amy" || lesson_publication_consent == "unset" ~ person_name_with_middle,
+      ## then orcid info
+      lesson_publication_consent == "orcid" &
+        is_valid_orcid(clean_up_orcid(orcid)) ~ get_orcid_name(clean_up_orcid(orcid)),
+      ## then github (just return GitHub username)
+      lesson_publication_consent == "github" ~  get_github_name(github),
+      ## if all else fails, use git info
       TRUE ~ name
     )) %>%
-    dplyr::pull(.data$pub_name) %>%
-    purrr::map(~ list(name = .))
+    dplyr::mutate(
+      pub_name = gsub("\\s+", " ", pub_name)
+    )
+
+}
+
+get_lesson_creators <- function(repos, since = NULL) {
+  creators <- repos %>%
+    get_origin_repo(since = since) %>%
+    dplyr::left_join(all_people(), by = "email")
+
+  creators %>%
+    add_pub_name()
+}
+
+write_name <- function(first, middle, family) {
+  res <- paste(
+    first,
+    dplyr::if_else(!is.na(middle) & nzchar(middle), middle, ""),
+    family
+  )
+  gsub("\\s+", " ", res)
+}
+
+clean_up_orcid <- function(orcid) {
+  orcid <- gsub("^https?://", "", orcid)
+  orcid <- gsub("^\\s*orcid.org/", "", orcid)
+  ## The zero width space unicode character
+  orcid <- gsub("\\xE2\\x80\\x8B", "", orcid, useBytes = TRUE)
+  orcid[!grepl("^\\d{4}-\\d{4}-\\d{4}-(\\d{3}X|\\d{4})$", orcid)] <- ""
+  orcid
+}
+
+is_valid_orcid <- function(orcid) {
+  !is.na(orcid) & nzchar(orcid) &
+    grepl("^\\d{4}-\\d{4}-\\d{4}-(\\d{3}X|\\d{4})$", orcid)
+}
+
+get_orcid_name <- function(orcid) {
+  purrr::map_chr(orcid, function(.x) {
+    if (is.na(.x) || !nzchar(.x)) return(NA_character_)
+    res <- rorcid::as.orcid(.x)
+    if (!is.null(res[[1]]$name$`credit-name`$value)) {
+      res <- res[[1]]$name$`credit-name`$value
+    } else {
+      res <- paste(res[[1]]$name$`given-names`, res[[1]]$name$`family-name`)
+    }
+    if (!length(res)) {
+      return(NA_character_)
+    }
+    res
+  })
+}
+
+
+get_github_name_hook <- function(key, namespace) {
+  if (is.na(key)) return(NA_character_)
+  res <- try(
+    gh::gh("GET /users/:username", username = key),
+    silent = TRUE
+  )
+  if (inherits(res, "try-error") || is.null(res$name))
+    NA_character_
+  else
+    res$name
+
+}
+
+
+get_github_store <- function() {
+  st <- storr::storr_external(
+    storr::driver_rds(file.path("local_data/github_names"), mangle_key = TRUE),
+    get_github_name_hook
+  )
+}
+
+get_github_name <- function(github) {
+  purrr::map_chr(github, function(.github) {
+    get_github_store()$get(.github)
+  })
+}
+
+##' @param editors_github the github username of the editors as it appears in AMY
+generate_zenodo_json <- function(repos, local_path, editors_github,
+                                 since = NULL,
+                                 ignore = character(0)) {
+
+  creators_df <- get_lesson_creators(repos, since = since) %>%
+    dplyr::filter(lesson_publication_consent != "no")
+
+  creators  <- creators_df %>%
+    dplyr::anti_join(tibble::tibble(email = ignore), by = "email") %>%
+    dplyr::select(.data$pub_name, .data$orcid) %>%
+    purrr::pmap(function(pub_name, orcid) {
+      if (is_valid_orcid(orcid)) {
+        return(list(name = pub_name, orcid = orcid))
+      } else {
+        list(name = pub_name)
+      }
+    })
 
   creators <- list(creators = creators)
 
-  eds <- purrr::map(editors, ~ list(type = "Editor", name = .))
+  eds <- purrr::map(editors_github, function(.x) {
+    res <- all_people() %>%
+      mutate(github = tolower(github)) %>%
+      filter(github == tolower(.x)) %>%
+      add_pub_name()
+
+    if (nrow(res) != 1L)
+      stop("issue with github name provided for editor: ", .x)
+
+    list(
+      name = res$pub_name, orcid = clean_up_orcid(res$orcid)
+    ) %>%
+      purrr::keep(~ !is.na(.) & nzchar(.))
+  })
+
+  eds <- purrr::map(eds, ~ c(type = "Editor",  .))
   eds <- list(contributors = eds)
 
   lic <- list(license =  list(id =  "CC-BY-4.0"))
@@ -326,8 +452,10 @@ generate_zenodo_json <- function(repos, local_path, editors,
   ## typ <- list(resource_type = list(title = "Lesson", type = "lesson"))
 
   res <- c(eds, creators, lic) #, typ)
-  cat(jsonlite::toJSON(res, auto_unbox = TRUE),
+  cat(jsonlite::toJSON(res, auto_unbox = TRUE, pretty = TRUE),
     file = file.path(local_path, ".zenodo.json"))
+
+  creators_df
 }
 
 
