@@ -1,4 +1,22 @@
+# N.B. This content was written by François Michonneau. 
+# Documentation provided by Zhian N. Kamvar
 
+#' Generate a git URL to use with git depending on provider method
+#'
+#'
+#' @param owner the repository owner
+#' @param repo the repository name
+#' @param provider one of "github" or "github-ssh".
+#'
+#' @return a url to use with git in the form of either https://github.com/ for
+#' https protocols (default) or git@@github.com/ for ssh protocols.
+#'
+#' @noRd
+#' @examples
+#' git_url("carpentries", "chisel", provider = "github")
+#' # https://github.com/carpentries/chisel.git
+#' git_url("carpentries", "chisel", provider = "github-ssh")
+#' # git@github.com/carpentries/chisel.git
 git_url <- function(owner, repo, provider = c("github", "github-ssh")) {
   provider <- match.arg(provider)
   if (identical(provider, "github")) {
@@ -12,6 +30,24 @@ git_url <- function(owner, repo, provider = c("github", "github-ssh")) {
 }
 
 
+#' Utility function to fetch a resource when the key is not found
+#'
+#' This function is used by [storr::storr_external()] to fetch data when the
+#' key is not found. In this case, it creates an empty temporary directory to
+#' store the github repository in.
+#'
+#' @param key a single character string in the format "owner-repo"
+#' @param namespace unused, but required by {storr}
+#'
+#' @note this creates a repository in a hard-coded path because there is no 
+#'   clear way to get a consistent path name into this fetch hook function.
+#'   That being said, this hardcoded path provides a way to store the downloaded
+#'   repositories outside the life of the R session in case errors occur, which
+#'   will reduce the network load and the number of API calls.
+#' 
+#' @return a pathname
+#' @noRd
+#' @seealso [get_repo()]
 get_repo_fetch_hook <- function(key, namespace) {
   pth <- file.path(
     "/tmp/repos",
@@ -22,10 +58,22 @@ get_repo_fetch_hook <- function(key, namespace) {
 }
 
 
+#' Fetch a repo and store it in a local temporary directory.
+#'
+#' If the repository does not exist, it will be downloaded. If it does exist,
+#' then the repository will be fetched from storr memory. Note that
+#' 
+#' @param owner the repository owner
+#' @param repo the repository name
+#' @param provider one of "github" or "github-ssh".
+#' @param path unused
+#'
+#' @return the path to the git repository
 get_repo <- function(owner, repo, provider = "github",
                      path = "/tmp/repos") {
   url <- git_url(owner, repo, provider)
 
+  # create a storr object to reference git2r repository objects
   st <- storr::storr_external(
     storr::driver_rds(tempdir(), mangle_key = TRUE),
     get_repo_fetch_hook
@@ -42,6 +90,19 @@ get_repo <- function(owner, repo, provider = "github",
   }
 }
 
+#' Generate a data frame of commits from a list of repositories
+#'
+#' @param repos a list of "git_repository" objects from {git2r}.
+#' 
+#' @return a data frame with commits in rows and the following columns:
+#'   - sha a hash of a given commit
+#'   - name the author name
+#'   - email the author email
+#'   - repo the name of the repository
+#'
+#' @note This function appears to be superseded by [extract_shortlog_history()]
+#'
+#' @noRd
 extract_repo_history <- function(repos) {
 
   if (!inherits(repos, "list"))
@@ -60,6 +121,18 @@ extract_repo_history <- function(repos) {
   }, .id = "repo")
 }
 
+
+#' Extract the git history from the shortlog
+#'
+#' @param repos a list of "git_repository" objects from {git2r}
+#' @param since a date string in ISO8601 format to define the date since the
+#'   last release
+#' @return a data frame with commits in rows and the following columns:
+#'   - sha a hash of a given commit
+#'   - name the author name
+#'   - email the author email
+#'   - repo the name of the repository
+#' @noRd
 extract_shortlog_history <- function(repos, since = NULL) {
   fout <- tempfile()
 
@@ -89,6 +162,18 @@ extract_shortlog_history <- function(repos, since = NULL) {
   }, .id = "repo")
 }
 
+#' Make a copy of the master mailmap stored in local version of chisel
+#'
+#' @param repo_path path to a local copy of a lesson
+#' @param mailmap path to the master mailmap file (in chisel)
+#'
+#' @note this is used to identify duplicate names in git commits and filter out
+#'   anyone who does not consent to publication in AMY. The main mailmap file is
+#'   kept private due to privacy concerns.
+#' 
+#' @seealso the mailmap docs here <https://git-scm.com/docs/gitmailmap>
+#' @return TRUE if the copy was successful, FALSE if otherwise
+#' @noRd
 copy_master_mailmap <- function(repo_path,
                                 mailmap = system.file("mailmap/.mailmap", package = "chisel")) {
 
@@ -110,7 +195,13 @@ copy_master_mailmap <- function(repo_path,
 }
 
 ##' @importFrom tibble tibble
-##' # mail_ignore should be a 1 column tibble named email e.g.:
+##' @param repo_list a data frame that has three columns:
+##'   - name the type of repository. "main" for the repository to credit, 
+##'        "source" for the originating repository if "main" is a translation,
+##'        "template" for the lesson template repository, depending on translation
+##'   - owner the github owner name
+##'   - repo the repository name
+##' @param mail_ignore should be a 1 column tibble named email e.g.:
 ##' main_ignore = tibble::tibble(
 ##'   email = c(
 ##'     "ebecker@carpentries.org",
@@ -122,6 +213,7 @@ get_origin_repo <- function(repo_list,
 
   stopifnot("main" %in% repo_list$name)
 
+  # res is a data frame with four columns
   res <- repo_list %>%
     purrr::pmap(function(owner, repo, ...) {
       get_repo(owner, repo)
@@ -135,16 +227,24 @@ get_origin_repo <- function(repo_list,
 
   }
 
+  # split rows of the data frame by repository, creating a list of data frames
+  # for each of the repositories represented
   res_split <- split(res, res$repo)
+
+  # The final list to count contributions
   .r <- vector("list", length(res_split))
+  
   i_split <- seq_along(res_split)
   for (i in i_split) {
+    # Filtering step: we want to get the commits that are UNIQUE to each source
     focus_src <- res_split[[i]]
     other_src <- dplyr::bind_rows(res_split[-i])
     focus_src <- dplyr::anti_join(focus_src, other_src, by = "sha")
+    # Aggregate the number of commits from each person by name and email
     .r[[i]] <- dplyr::count(focus_src, .data$name, .data$email, sort = TRUE)
   }
 
+  # return a data frame that has unique contributors to the lesson
   dplyr::bind_rows(.r) %>%
     dplyr::distinct(.data$email, .keep_all = TRUE)
 }
