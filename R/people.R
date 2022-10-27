@@ -25,6 +25,7 @@
 #'   - lesson_publication_consent: one of "no", "amy" "orcid", 
 #'       "github" or "unset"
 #'
+#' @noRd
 all_people <- function() {
 
   api_key <- get_env_var("REDASH_QUERY128")
