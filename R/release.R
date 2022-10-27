@@ -520,6 +520,7 @@ add_pub_name <- function(.data) {
 #'   - repo: the _type_ of the repository ("main", "source", or "template")
 #'   - n: the number of commits by this author
 #' @noRd
+#' @seealso [generate_zenodo_json()]
 get_lesson_creators <- function(repos, since = NULL) {
   creators <- repos %>%
     get_origin_repo(since = since) %>%
