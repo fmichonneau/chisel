@@ -69,6 +69,7 @@ get_repo_fetch_hook <- function(key, namespace) {
 #' @param path unused
 #'
 #' @return the path to the git repository
+#' @noRd
 get_repo <- function(owner, repo, provider = "github",
                      path = "/tmp/repos") {
   url <- git_url(owner, repo, provider)
@@ -225,6 +226,7 @@ copy_master_mailmap <- function(repo_path,
 #'   - n: the number of commits by this author
 #' @seealso [generate_zenodo_json()] which uses [get_lesson_creators()], which
 #'   uses this function. 
+#' @noRd
 get_origin_repo <- function(repo_list,
                             main_ignore = NULL,
                             since = NULL) {
@@ -473,6 +475,7 @@ if (FALSE) {
 #' 
 #' @seealso [all_people()], [get_lesson_creators()] which uses this function
 #'   internally.
+#' @noRd
 add_pub_name <- function(.data) {
 
   # for when calling add_pub_name for list of editors using their GitHub
@@ -516,6 +519,7 @@ add_pub_name <- function(.data) {
 #'   - name: the author name
 #'   - repo: the _type_ of the repository ("main", "source", or "template")
 #'   - n: the number of commits by this author
+#' @noRd
 get_lesson_creators <- function(repos, since = NULL) {
   creators <- repos %>%
     get_origin_repo(since = since) %>%
@@ -596,6 +600,7 @@ get_github_name <- function(github) {
 #' 
 #' @param repos 
 #' @param editors_github the github username of the editors as it appears in AMY
+#' @noRd
 generate_zenodo_json <- function(repos, local_path, editors_github,
                                  since = NULL,
                                  ignore = character(0)) {
