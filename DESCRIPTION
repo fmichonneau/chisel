@@ -24,6 +24,7 @@ Imports:
   sys,
   tibble,
   rorcid,
+  askpass,
   utils
 License: MIT + file LICENSE
 Encoding: UTF-8
