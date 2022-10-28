@@ -449,6 +449,16 @@ if (FALSE) {
       editors =  c("foo"),
       ignore = c("ebecker@carpentries.org",
         "francois.michonneau@gmail.com"))
+
+  # R-raster-vector -- 2022-10-28
+  res <- tibble::tribble(
+    ~name,  ~owner, ~repo,
+    "main", "datacarpentry", "r-raster-vector-geospatial",
+    "template", "carpentries", "styles"
+  ) %>%
+    generate_zenodo_json(local_path = "~/Documents/Carpentries/Git/datacarpentry/r-raster-vector-geospatial",
+      editors = c("jsta", "drakeasberry", "arreyves"),
+      ignore = c("francois.michonneau@gmail.com", "zkamvar@carpentries.org"))
 }
 # INTERACTIVE PART }}}----------------------------------------------------------
 
