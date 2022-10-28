@@ -266,9 +266,12 @@ get_origin_repo <- function(repo_list,
     # Filtering step: we want to get the commits that are UNIQUE to each source
     focus_src <- res_split[[i]]
     other_src <- dplyr::bind_rows(res_split[-i])
+    # The anti-join here should produce commits distinctly produced in the
+    # lesson and not those from styles. We assume here that the lessons are 
+    # updated so that the steps of the loop with styles result in data frames
+    # with no rows. 
     focus_src <- dplyr::anti_join(focus_src, other_src, by = "sha")
     # Aggregate the number of commits from each person by email, sorted.
-    # The sorting is important here so that we can filter out non-lesson commits.
     .r[[i]] <- dplyr::count(focus_src, .data$name, .data$email, sort = TRUE)
   }
 
@@ -278,12 +281,10 @@ get_origin_repo <- function(repo_list,
   # both styles and the lesson, they will still get credit for contributing to
   # the lesson.
   #
-  # Again, we have a list of data frame all with four columns:
+  # We have a list of data frames with two columns:
   #
-  # - sha a hash of a given commit
   # - name the author name
   # - email the author email
-  # - repo the _type_ of repository ("main", "source", or "template")
   dplyr::bind_rows(.r) %>%
     dplyr::distinct(.data$email, .keep_all = TRUE)
 }
@@ -450,7 +451,6 @@ if (FALSE) {
         "francois.michonneau@gmail.com"))
 }
 # INTERACTIVE PART }}}----------------------------------------------------------
-
 
 #' Determine the publication name for a data frame of creators
 #'
