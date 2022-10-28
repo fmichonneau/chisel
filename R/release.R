@@ -599,8 +599,21 @@ get_github_name <- function(github) {
 
 #' Generate a JSON file compatible with Zenodo to record lesson releases 
 #' 
-#' @param repos 
+#' @param repos a data frame that has three columns:
+#'   - name the type of repository. "main" for the repository to credit, 
+#'        "source" for the originating repository if "main" is a translation,
+#'        "template" for the lesson template repository, depending on translation
+#'   - owner the github owner name
+#'   - repo the repository name
+#' @param local_path path to the local version of the repository
 #' @param editors_github the github username of the editors as it appears in AMY
+#' @param since a date string in ISO 8601 format as a start date to gather 
+#'   commits.
+#'
+#' @note This is the main driver function for generating the ZENODO json file. 
+#'   I think one thing that is not immediately clear is that "editors" in 
+#'   zenodo terminology is the equivalent of our "maintainers". 
+#'
 #' @noRd
 generate_zenodo_json <- function(repos, local_path, editors_github,
                                  since = NULL,
@@ -647,10 +660,10 @@ generate_zenodo_json <- function(repos, local_path, editors_github,
   # typ <- list(resource_type = list(title = "Lesson", type = "lesson"))
 
   res <- c(eds, creators, lic) #, typ)
-  cat(jsonlite::toJSON(res, auto_unbox = TRUE, pretty = TRUE),
-    file = file.path(local_path, ".zenodo.json"))
+  json <- jsonlite::toJSON(res, auto_unbox = TRUE, pretty = TRUE)
+  cat(json, file = file.path(local_path, ".zenodo.json"))
 
-  creators_df
+  list(data = creators_df, json = json)
 }
 
 
