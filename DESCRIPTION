@@ -23,6 +23,7 @@ Imports:
   storr,
   sys,
   tibble,
+  rorcid,
   utils
 License: MIT + file LICENSE
 Encoding: UTF-8

@@ -6,3 +6,4 @@
 ^README\.html$
 local_data/
 inst/mailmap/.mailmap
+^\.httr-oauth$
