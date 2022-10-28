@@ -183,12 +183,12 @@ extract_shortlog_history <- function(repos, since = NULL) {
 #' @return TRUE if the copy was successful, FALSE if otherwise
 #' @noRd
 copy_master_mailmap <- function(repo_path,
-                                mailmap = system.file("mailmap/.mailmap", package = "chisel")) {
+                                mailmap = system.file("mailmap/mailmap.txt", package = "chisel")) {
 
   # The mailmap copy in this repository should point to the email address used
   # in AMY by the user, so we can match to name + ORCID
 
-  dest_mailmap <- file.path(repo_path, ".mailmap")
+  dest_mailmap <- file.path(repo_path, "mailmap.txt")
   if (file.exists(dest_mailmap)) {
     orig_mailmap <- readLines(dest_mailmap, warn = FALSE)
   } else {

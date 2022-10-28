@@ -5,4 +5,5 @@
 inst/doc
 local_data/
 inst/mailmap/.mailmap
+inst/mailmap/mailmap.txt
 .httr-oauth
