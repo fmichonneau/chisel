@@ -188,7 +188,7 @@ copy_master_mailmap <- function(repo_path,
   # The mailmap copy in this repository should point to the email address used
   # in AMY by the user, so we can match to name + ORCID
 
-  dest_mailmap <- file.path(repo_path, "mailmap.txt")
+  dest_mailmap <- file.path(repo_path, ".mailmap")
   if (file.exists(dest_mailmap)) {
     orig_mailmap <- readLines(dest_mailmap, warn = FALSE)
   } else {
