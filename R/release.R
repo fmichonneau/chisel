@@ -624,7 +624,7 @@ get_github_name <- function(github) {
 #'   I think one thing that is not immediately clear is that "editors" in 
 #'   zenodo terminology is the equivalent of our "maintainers". 
 #'
-#' @noRd
+#' @export
 generate_zenodo_json <- function(repos, local_path, editors_github,
                                  since = NULL,
                                  ignore = character(0)) {
