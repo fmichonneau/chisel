@@ -638,7 +638,7 @@ generate_zenodo_json <- function(repos, local_path, editors_github,
     dplyr::anti_join(tibble::tibble(email = ignore), by = "email") %>%
     dplyr::select(.data$pub_name, .data$orcid) %>%
     purrr::pmap(function(pub_name, orcid) {
-      this_orchid <- clean_up_orchid(orchid)
+      this_orchid <- clean_up_orcid(orchid)
       if (is_valid_orcid(this_orcid)) {
         return(list(name = pub_name, orcid = this_orcid))
       } else {
