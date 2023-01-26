@@ -459,6 +459,31 @@ if (FALSE) {
     generate_zenodo_json(local_path = "~/Documents/Carpentries/Git/datacarpentry/r-raster-vector-geospatial",
       editors = c("jsta", "drakeasberry", "arreyves"),
       ignore = c("francois.michonneau@gmail.com", "zkamvar@carpentries.org"))
+
+
+  # Release of DC image-processing -- 2023-01-25
+  # NOTE: this was a challenging one because it has a hybrid history where it
+    # started out using styles, and then switched to use remote themes in late
+    # 2019. On 2021-08-17, styles was once again merged into the repo:
+    # https://github.com/datacarpentry/image-processing/pull/160
+    # I believe Toby had successfully resolved the conflicts to have the styling
+    # removed, but it still kept the history.
+    #
+    # Because the processing also can take a repository that _should_ be
+    # considered in the contribution count (in terms of translation 
+    # repositories), the commits since 2021-08-17 were mixed in and the zenodo
+    # json file had three extra contributors. 
+  res <- tibble::tribble(
+    ~name,  ~owner, ~repo,
+    "main", "datacarpentry", "image-processing",
+    "template", "carpentries", "styles"
+  ) %>%
+    generate_zenodo_json(local_path = "~/Documents/Carpentries/Git/datacarpentry/image-processing",
+      editors = c("tobyhodges", "uschille", "bobturneruk", "quist00", "K-Meech"),
+      ignore = c("francois.michonneau@gmail.com", "zkamvar@carpentries.org",
+        # These are additional styles contributions to ignore
+        "renato.alves@embl.de", "ashwinvis+carp@protonmail.com", "smb@sarahmbrown.org"))
+
 }
 # INTERACTIVE PART }}}----------------------------------------------------------
 
