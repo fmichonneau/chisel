@@ -228,7 +228,7 @@ copy_master_mailmap <- function(repo_path,
 #'   uses this function. 
 #' @noRd
 get_origin_repo <- function(repo_list,
-                            main_ignore = NULL,
+                            mail_ignore = NULL,
                             since = NULL) {
 
   stopifnot("main" %in% repo_list$name)
@@ -250,8 +250,8 @@ get_origin_repo <- function(repo_list,
     rlang::set_names(repo_list$name) %>%
     extract_shortlog_history(since = since)
 
-  if (!is.null(main_ignore)) {
-    res <- dplyr::filter(res, !(.data$email %in% main_ignore$email &
+  if (!is.null(mail_ignore)) {
+    res <- dplyr::filter(res, !(.data$email %in% mail_ignore$email &
                                   .data$repo == "main"))
   }
   # split rows of the data frame by repository, creating a list of data frames
