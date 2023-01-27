@@ -69,6 +69,16 @@ make_mailmap_entries <- function(pub_name, email, alt_email) {
   return(out)
 }
 
+#' Append the master mailmap file
+#'
+#' @param dat a data frame with at least three columns:
+#'   - pub_name: A person's desired publication name in AMY
+#'   - email: A person's default AMY email address
+#'   - github_email: the github noreply email address to append
+#' @return nothing: this function is used to update a local file
+#' @seealso [get_lesson_creators()], which creates the data frame for this
+#'   function
+#' @noRd
 append_master_mailmap <- function(dat, mailmap = system.file("mailmap/mailmap.txt", package = "chisel")) {
   new_entries <- make_mailmap_entries(dat[["pub_name"]], 
     dat[["email"]], 

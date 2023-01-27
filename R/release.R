@@ -572,6 +572,11 @@ add_pub_name <- function(.data) {
 
 #' Get a data frame of creators for a given repository
 #'
+#' This will fetch the data of lesson creators for a given repository and then
+#' attempt to match the emails to those in our AMY database. If it can not match
+#' emails, it will attempt to do so by github username and append the master
+#' mailmap file.
+#'
 #' @param repos a data frame that has three columns:
 #'   - name the type of repository. "main" for the repository to credit, 
 #'        "source" for the originating repository if "main" is a translation,
@@ -586,7 +591,7 @@ add_pub_name <- function(.data) {
 #'   - repo: the _type_ of the repository ("main", "source", or "template")
 #'   - n: the number of commits by this author
 #' @noRd
-#' @seealso [generate_zenodo_json()]
+#' @seealso [generate_zenodo_json()], [append_master_mailmap()]
 get_lesson_creators <- function(repos, since = NULL) {
   # Get the filtered shortlog data with name, repository type, and number of
   # commits.
