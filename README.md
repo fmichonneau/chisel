@@ -95,7 +95,33 @@ This table is then piped `%>%` into the function.
 
 ### Output
 
-The output is a `zenodo.json` file written to the `local_path` (your
+When you run the function, likely, there will be some github noreply
+emails that are not in our AMY database or in our mailmap file. The
+release process will attempt to match the github handles from these
+names to AMY data and update the master mailmap file in
+`inst/mailmap/mailmap.txt`.
+
+When there are github handles detected, you will see a message like
+this:
+
+    Matched 9/12 github handles to AMY data
+    These handles had missing information:
+
+      brynnelliott
+      raisaionin
+      TM612
+
+    # 2023-01-27 10:25:28 ---
+    writing 9 new entries to mailmap starting on line 492
+
+If there are zero matches, the mailmap file will not be updated.
+
+#### Output Object
+
+The output object (usually called `res`) contains a data frame and a
+json representation.
+
+The output is a `.zenodo.json` file written to the `local_path` (your
 copy of the lesson repository), but it also returns a list with two
 elements:
 
