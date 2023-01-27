@@ -512,6 +512,43 @@ if (FALSE) {
     ignore = c("francois.michonneau@gmail.com", "zkamvar@carpentries.org", "tbyhdgs@gmail.com")
   )
   }
+  # python-ecology-lesson-es -- 2023-01-27
+  {
+  pels <- tibble::tribble(
+    ~name,  ~owner, ~repo,
+    "main", "datacarpentry", "python-ecology-lesson-es",
+    # NOTE: 2023-01-27, ZNK: 
+    # I am commenting this one out because I do not know how much influence the
+    # english lesson has had on the spanish lesson since 2019. The english
+    # source files in the spanish repository have not changed for four years,
+    # so I am thinking it would be better to assign authorship just to the
+    # contributions to the spanish repository. --------------------------------
+    # "english", "datacarpentry", "python-ecology-lesson", 
+    "template", "carpentries", "styles",
+    "template-es", "carpentries", "styles-es"
+  ) 
+  res <- generate_zenodo_json(pels, 
+    local_path = "~/Documents/Carpentries/Git/datacarpentry/python-ecology-lesson-es",
+    since = "2019-01-09",
+    editors = c("iramosp", "aguspesce", "vinisalazar"),
+    ignore = c("francois.michonneau@gmail.com", "zkamvar@carpentries.org", "tbyhdgs@gmail.com")
+  )
+  }
+  # instructor-training -- 2023-01-27
+  {
+  cit <- tibble::tribble(
+    ~name,  ~owner, ~repo,
+    "main", "carpentries", "instructor-training",
+    "template", "carpentries", "styles"
+  ) 
+  res <- generate_zenodo_json(cit, 
+    local_path = "~/Documents/Carpentries/Git/carpentries/instructor-training",
+    since = "2021-11-17",
+    editors = c("brownsarahm", "jt14den", "dpshelio", "ndporter",
+      "jonathanwheeler01", "karenword"),
+    ignore = c("francois.michonneau@gmail.com", "zkamvar@carpentries.org", "tbyhdgs@gmail.com")
+  )
+  }
 
 
 }
