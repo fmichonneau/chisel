@@ -202,6 +202,19 @@ copy_master_mailmap <- function(repo_path,
 
 }
 
+#' Retrieve the shortlog for a list of repositories
+#'
+#' @inheritParams get_origin_repo
+#' @return a data frame with the output of [extract_shortlog_history()]
+get_repo_shortlog <- function(repo_list, since = NULL) {
+  repo_list %>%
+    purrr::pmap(function(owner, repo, ...) {
+      get_repo(owner, repo)
+    }) %>%
+    rlang::set_names(repo_list$name) %>%
+    extract_shortlog_history(since = since)
+}
+
 #' Get a table of commits for lesson material
 #'
 #' @importFrom tibble tibble
@@ -212,7 +225,7 @@ copy_master_mailmap <- function(repo_path,
 #'   - owner the github owner name
 #'   - repo the repository name
 #' @param mail_ignore should be a 1 column tibble named email e.g.:
-#' main_ignore = tibble::tibble(
+#' mail_ignore = tibble::tibble(
 #'   email = c(
 #'     "ebecker@carpentries.org",
 #'    "francois.michonneau@gmail.com")
@@ -243,12 +256,7 @@ get_origin_repo <- function(repo_list,
   # - email the author email
   # - repo the _type_ of repository ("main", "source", or "template")
   #
-  res <- repo_list %>%
-    purrr::pmap(function(owner, repo, ...) {
-      get_repo(owner, repo)
-    }) %>%
-    rlang::set_names(repo_list$name) %>%
-    extract_shortlog_history(since = since)
+  res <- get_repo_shortlog(repo_list, since)
 
   if (!is.null(mail_ignore)) {
     res <- dplyr::filter(res, !(.data$email %in% mail_ignore$email &
@@ -272,6 +280,8 @@ get_origin_repo <- function(repo_list,
     # with no rows. 
     focus_src <- dplyr::anti_join(focus_src, other_src, by = "sha")
     # Aggregate the number of commits from each person by email, sorted.
+    # NOTE: ZNK: I would like to add a way to collapse the commits into a list
+    # column so that I can query them easily
     .r[[i]] <- dplyr::count(focus_src, .data$name, .data$email, sort = TRUE)
   }
 
@@ -450,16 +460,6 @@ if (FALSE) {
       ignore = c("ebecker@carpentries.org",
         "francois.michonneau@gmail.com"))
 
-  # R-raster-vector -- 2022-10-28
-  res <- tibble::tribble(
-    ~name,  ~owner, ~repo,
-    "main", "datacarpentry", "r-raster-vector-geospatial",
-    "template", "carpentries", "styles"
-  ) %>%
-    generate_zenodo_json(local_path = "~/Documents/Carpentries/Git/datacarpentry/r-raster-vector-geospatial",
-      editors = c("jsta", "drakeasberry", "arreyves"),
-      ignore = c("francois.michonneau@gmail.com", "zkamvar@carpentries.org"))
-
 
   # Release of DC image-processing -- 2023-01-25
   # NOTE: this was a challenging one because it has a hybrid history where it
@@ -483,6 +483,22 @@ if (FALSE) {
       ignore = c("francois.michonneau@gmail.com", "zkamvar@carpentries.org",
         # These are additional styles contributions to ignore
         "renato.alves@embl.de", "ashwinvis+carp@protonmail.com", "smb@sarahmbrown.org"))
+
+  # R-raster-vector -- 2023-01-26
+  {
+  rrvg <- tibble::tribble(
+    ~name,  ~owner, ~repo,
+    "main", "datacarpentry", "r-raster-vector-geospatial",
+    "template", "carpentries", "styles"
+  ) 
+  res <- generate_zenodo_json(rrvg, 
+    local_path = "~/Documents/Carpentries/Git/datacarpentry/r-raster-vector-geospatial",
+    since = "2019-07-27",
+    editors = c("jsta", "drakeasberry", "arreyves"),
+    ignore = c("francois.michonneau@gmail.com", "zkamvar@carpentries.org", "tbyhdgs@gmail.com")
+  )
+  }
+
 
 }
 # INTERACTIVE PART }}}----------------------------------------------------------
@@ -654,13 +670,15 @@ generate_zenodo_json <- function(repos, local_path, editors_github,
                                  since = NULL,
                                  ignore = character(0)) {
 
+  gives_consent <- function(consent_var) {
+    is.na(consent_var) | consent_var != "no"
+  }
+
   creators_df <- get_lesson_creators(repos, since = since) %>%
-    dplyr::filter(
-      is.na(lesson_publication_consent) | lesson_publication_consent != "no"
-    )
+    dplyr::filter(gives_consent(lesson_publication_consent)) %>%
+    dplyr::anti_join(tibble::tibble(email = ignore), by = "email") 
 
   creators  <- creators_df %>%
-    dplyr::anti_join(tibble::tibble(email = ignore), by = "email") %>%
     dplyr::select(.data$pub_name, .data$orcid) %>%
     purrr::pmap(function(pub_name, orcid) {
       this_orcid <- clean_up_orcid(orcid)
