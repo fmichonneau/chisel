@@ -498,6 +498,20 @@ if (FALSE) {
     ignore = c("francois.michonneau@gmail.com", "zkamvar@carpentries.org", "tbyhdgs@gmail.com")
   )
   }
+  # R-socialsci -- 2023-01-26
+  {
+  rss <- tibble::tribble(
+    ~name,  ~owner, ~repo,
+    "main", "datacarpentry", "r-socialsci",
+    "template", "carpentries", "styles"
+  ) 
+  res <- generate_zenodo_json(rss, 
+    local_path = "~/Documents/Carpentries/Git/datacarpentry/r-socialsci",
+    since = "2019-07-02",
+    editors = c("juanfung", "eirini-zormpa", "jessesadler"),
+    ignore = c("francois.michonneau@gmail.com", "zkamvar@carpentries.org", "tbyhdgs@gmail.com")
+  )
+  }
 
 
 }
