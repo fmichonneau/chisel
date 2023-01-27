@@ -588,12 +588,32 @@ add_pub_name <- function(.data) {
 #' @noRd
 #' @seealso [generate_zenodo_json()]
 get_lesson_creators <- function(repos, since = NULL) {
-  creators <- repos %>%
-    get_origin_repo(since = since) %>%
-    dplyr::left_join(all_people(), by = "email")
-
-  creators %>%
-    add_pub_name()
+  # Get the filtered shortlog data with name, repository type, and number of
+  # commits.
+  creators_df <- get_origin_repo(repos, since = since)
+  print(creators_df)
+  AP <- all_people()
+  creators <- creators_df |>
+    dplyr::left_join(AP, by = c("email"), na_matches = "never")
+  # check if there are any emails that were not auto-joined. This would be
+  # indicated by a github-style email
+  github_emails <- git_user_from_email(creators$email)
+  if (any(!is.na(github_emails))) {
+    creators_df$github <- github_emails
+    # when we have github style emails, then we need to append the mailmap to 
+    # make sure they are disambiguated
+    creators_by_github <- creators_df |>
+      dplyr::rename(github_email = "email") |> 
+      dplyr::filter(!is.na(.data$github)) |> 
+      dplyr::left_join(AP, by = c("github"), na_matches = "never") |>
+      append_master_mailmap()
+    # now that the master mailmap is appended, we can get to work
+    creators_df <- get_origin_repo(repos, since = since)
+    creators <- creators_df |>
+      dplyr::left_join(AP, by = c("email"), na_matches = "never")
+  }
+  # join on email (note this depends on 
+  add_pub_name(creators)
 }
 
 write_name <- function(first, middle, family) {
