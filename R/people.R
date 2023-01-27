@@ -58,3 +58,33 @@ git_user_from_email <- function(email) {
   email[!grepl("@users.noreply.github.com", email, fixed = TRUE)] <- NA
   sub("^([0-9]{6,}[+])?(.+?)[@]users.noreply.github.com", "\\2", email)
 }
+
+make_mailmap_entries <- function(pub_name, email, alt_email) {
+  ok <- !(is.na(pub_name) | is.na(email) | is.na(alt_email))
+  out <- sprintf("%s <%s> <%s>", pub_name[ok], email[ok], alt_email[ok])
+  message(sprintf("Matched %s/%s github handles to AMY data", 
+      sum(ok), length(ok)))
+  message(sprintf("These handles had missing information:\n\n  %s\n", 
+    paste(git_user_from_email(alt_email[!ok]), collapse = "\n  "))) 
+  return(out)
+}
+
+append_master_mailmap <- function(dat, mailmap = system.file("mailmap/mailmap.txt", package = "chisel")) {
+  new_entries <- make_mailmap_entries(dat[["pub_name"]], 
+    dat[["email"]], 
+    dat[["github_email"]])
+  all_mappings <- readLines(mailmap)
+  new_entries <- new_entries[!is.na(new_entries)]
+  timestamp <- paste("#", Sys.time(), "---")
+  n <- length(new_entries)
+  if (n > 0) {
+    message(sprintf("%s\nwriting %d new entries to mailmap starting on line %s", 
+        timestamp, length(new_entries), length(all_mappings)))
+    writeLines(unique(c(all_mappings, timestamp, new_entries)), mailmap)
+  } else {
+    message("no new entries added to mailmap")
+  }
+}
+
+
+
