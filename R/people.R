@@ -44,3 +44,17 @@ all_people <- function() {
     pub_name =  person_name
   )
 }
+
+#' Extract git username from an email
+#'
+#' GitHub emails are often XXXXXX+[username]@users.noreply.github.com to
+#' mask user's email addresses and it messes with our matching in AMY, so
+#' if we have this pattern, we can get the github username from the email
+#' and then match it against our AMY database
+#'
+#' @param email a character vector of emails
+#' @return a character string of github usernames where they could be found
+git_user_from_email <- function(email) {
+  email[!grepl("@users.noreply.github.com", email, fixed = TRUE)] <- NA
+  sub("^([0-9]{6,}[+])?(.+?)[@]users.noreply.github.com", "\\2", email)
+}
