@@ -559,7 +559,8 @@ add_pub_name <- function(.data) {
       lesson_publication_consent == "orcid" &
         is_valid_orcid(clean_up_orcid(orcid)) ~ get_orcid_name(clean_up_orcid(orcid)),
       # then github (just return GitHub username)
-      lesson_publication_consent == "github" ~  get_github_name(github),
+      # 2023-01-27, ZNK: AMY's github consent is for the _handle_ not the name.
+      lesson_publication_consent == "github" ~  github, #get_github_name(github),
       # if all else fails, use git info
       TRUE ~ name
     )) %>%
