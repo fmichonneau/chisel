@@ -546,7 +546,7 @@ if (FALSE) {
     since = "2021-11-17",
     editors = c("brownsarahm", "jt14den", "dpshelio", "ndporter",
       "jonathanwheeler01", "karenword"),
-    ignore = c("francois.michonneau@gmail.com", "zkamvar@carpentries.org", "tbyhdgs@gmail.com")
+    ignore = c("francois.michonneau@gmail.com", "zkamvar@carpentries.org")
   )
   }
 
