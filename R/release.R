@@ -493,7 +493,7 @@ if (FALSE) {
   ) 
   res <- generate_zenodo_json(rrvg, 
     local_path = "~/Documents/Carpentries/Git/datacarpentry/r-raster-vector-geospatial",
-    since = "2019-07-27",
+    since = "2019-06-27",
     editors = c("jsta", "drakeasberry", "arreyves"),
     ignore = c("francois.michonneau@gmail.com", "zkamvar@carpentries.org", "tbyhdgs@gmail.com")
   )
