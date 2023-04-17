@@ -756,6 +756,7 @@ generate_zenodo_json <- function(repos, local_path, editors_github,
     dplyr::anti_join(tibble::tibble(email = ignore), by = "email") 
   
   # message about orcid API kerfuffle
+  # see <https://fosstodon.org/@sckottie/110216560448583570>
   message("MANUALLY REPLACE WITH ORCID NAMES\n--------------------\n")
   creators_df %>%
     dplyr::filter(lesson_publication_consent == "orcid") %>%
