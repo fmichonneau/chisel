@@ -594,7 +594,7 @@ add_pub_name <- function(.data) {
         lesson_publication_consent == "unset" ~ person_name_with_middle,
       # then orcid info
       lesson_publication_consent == "orcid" &
-        is_valid_orcid(clean_up_orcid(orcid)) ~ get_orcid_name(clean_up_orcid(orcid)),
+        is_valid_orcid(clean_up_orcid(orcid)) ~ tryCatch(get_orcid_name(clean_up_orcid(orcid)), error = function(e) person_name_with_middle) ,
       # then github (just return GitHub username)
       # 2023-01-27, ZNK: AMY's github consent is for the _handle_ not the name.
       lesson_publication_consent == "github" ~  github, #get_github_name(github),
@@ -754,6 +754,16 @@ generate_zenodo_json <- function(repos, local_path, editors_github,
   creators_df <- get_lesson_creators(repos, since = since) %>%
     dplyr::filter(gives_consent(lesson_publication_consent)) %>%
     dplyr::anti_join(tibble::tibble(email = ignore), by = "email") 
+  
+  # message about orcid API kerfuffle
+  message("MANUALLY REPLACE WITH ORCID NAMES\n--------------------\n")
+  creators_df %>%
+    dplyr::filter(lesson_publication_consent == "orcid") %>%
+    dplyr::mutate(orcid = sub("^([0-9])", "https://orcid.org/\\1", orcid)) %>%
+    glue::glue_data("{format(pub_name, justify = 'right')} ... <{orcid}>") %>%
+    glue::glue_collapse("\n") %>%
+    message()
+  message("\n---------------------\n")
 
   creators  <- creators_df %>%
     dplyr::select(.data$pub_name, .data$orcid) %>%
